@@ -24,7 +24,7 @@ std::vector<RFile*> gGourceRemovedFiles;
 std::vector<std::string> gGourceAllowedResizableFileExtensions = {
     "py", "rb", "sh", "pl", "js", "css", "coffee",
     "c", "cpp", "h", "hpp", "html", "haml", "sass", "less",
-    "m", "swift"
+    "mm", "m", "swift", "xib", "storyboard"
 };
 size_t max_fsize;
 size_t min_fsize;
