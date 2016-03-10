@@ -33,10 +33,12 @@
 class RCommitFile {
 public:
     std::string filename;
+    size_t filesize;
     std::string action;
     vec3 colour;
 
     RCommitFile(const std::string& filename, const std::string& action, vec3 colour);
+    RCommitFile(const std::string& filename, const std::string& action, vec3 colour, size_t filesize);
 };
 
 class RCommit {
@@ -44,6 +46,7 @@ class RCommit {
 public:
     time_t timestamp;
     std::string username;
+    std::string commit_id;
 
     std::list<RCommitFile> files;
 
@@ -52,6 +55,8 @@ public:
 
     void addFile(const std::string& filename, const std::string& action);
     void addFile(const std::string& filename, const std::string& action, const vec3& colour);
+    void addFile(const std::string& filename, const std::string& action, size_t filesize);
+    void addFile(const std::string& filename, const std::string& action, const vec3& colour, size_t filesize);
 
     RCommit();
     void debug();

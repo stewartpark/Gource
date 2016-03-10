@@ -860,7 +860,7 @@ void RDirNode::updateFilePositions() {
 
         if(file_no>=max_files) {
             diameter++;
-            d += gGourceFileDiameter;
+            d += f->size;
             max_files = (int) std::max(1.0, diameter*PI);
 
             if(files_left<max_files) {

@@ -17,6 +17,7 @@
 
 #include "git.h"
 #include "../gource_settings.h"
+#include <cstdio>
 
 // parse git log entries
 
@@ -25,10 +26,12 @@
 // - 'user:' prefix allows us to quickly tell if the log is the wrong format
 //   and try a different format (eg cvs-exp)
 
+const std::string GitGetFileSizeCommand = "git cat-file -s %s:%s > %s";
+
 std::string GitCommitLog::logCommand() {
 
     std::string log_command = "git log "
-    "--pretty=format:user:%aN%n%ct "
+    "--pretty=format:commit_id:%H%nuser:%aN%n%ct "
     "--reverse --raw --encoding=UTF-8 "
     "--no-renames";
 
@@ -108,11 +111,11 @@ BaseLog* GitCommitLog::generateLog(const std::string& dir) {
     // check for new-enough Git version
     // if %aN does not appear to be supported try %an
     std::ifstream in(temp_file.c_str());
-    char firstBytes[9];
-    in.read(firstBytes, 8);
+    char firstBytes[11];
+    in.read(firstBytes, 10);
     in.close();
-    firstBytes[8] = '\0';
-    if(!strcmp(firstBytes, "user:%aN")) {
+    firstBytes[10] = '\0';
+    if(!strcmp(firstBytes, "commit_id:")) {
         char *pos = strstr(cmd_buff, "%aN");
         pos[2] = 'n';
         command_rc = systemCommand(cmd_buff);
@@ -135,12 +138,16 @@ BaseLog* GitCommitLog::generateLog(const std::string& dir) {
 bool GitCommitLog::parseCommit(RCommit& commit) {
 
     std::string line;
+    char filesizeBuf[256];
 
     commit.username = "";
 
     while(logf->getNextLine(line) && line.size()) {
 
-        if(line.find("user:") == 0) {
+        if(line.find("commit_id:") == 0) {
+           commit.commit_id = line.substr(10); 
+
+           if(!logf->getNextLine(line)) return false;
 
             //username follows user prefix
             commit.username = line.substr(5);
@@ -175,7 +182,24 @@ bool GitCommitLog::parseCommit(RCommit& commit) {
             file = file.substr(1,file.size()-2);
         }
 
-        commit.addFile(file, status);
+
+        std::string size_temp_file = temp_file + "_filesize";
+
+        memset(filesizeBuf, 0, sizeof(char) * 256);
+        snprintf(filesizeBuf, sizeof(char) * 256, GitGetFileSizeCommand.c_str(), commit.commit_id.c_str(), file.c_str(), size_temp_file.c_str());
+
+        systemCommand(filesizeBuf);
+
+        std::ifstream ifs ( size_temp_file );
+        std::string filesize_str;
+        ifs >> filesize_str;
+
+        size_t filesize = 0;
+        if(!filesize_str.empty()) {
+            filesize = std::stoi(filesize_str);
+        }
+
+        commit.addFile(file, status, filesize);
     }
 
     //check we at least got a username

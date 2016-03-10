@@ -16,17 +16,32 @@
 */
 
 #include "file.h"
+#include <math.h>
 
 float gGourceFileDiameter  = 8.0;
+float gGourceFileMaxDiameter = 100.0;
+float gGourceDiameterPerByte = 20480.0;
 
 std::vector<RFile*> gGourceRemovedFiles;
 
 FXFont file_selected_font;
 FXFont file_font;
 
-RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid) : Pawn(name,pos,tagid) {
+RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid, size_t filesize) : Pawn(name,pos,tagid) {
+
     hidden = true;
-    size = gGourceFileDiameter * 1.05;
+    
+    if(filesize) {
+        size = (float)filesize / gGourceDiameterPerByte;
+        if(size < gGourceFileDiameter) {
+            size = gGourceFileDiameter;
+        } else if(size > gGourceFileMaxDiameter) {
+            size = gGourceFileMaxDiameter;
+        }
+    } else {
+        size = gGourceFileDiameter;
+    }
+
     radius = size * 0.5;
 
     setGraphic(gGourceSettings.file_graphic);

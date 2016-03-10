@@ -44,7 +44,7 @@ class RFile : public Pawn {
 
    // FXLabel* label;
 
-    //GLuint namelist;
+    //GLuint namelist
 
     void setFilename(const std::string& abs_file_path);
 
@@ -55,7 +55,7 @@ public:
     std::string fullpath;
     std::string ext;
 
-    RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid);
+    RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid, size_t filesize);
     ~RFile();
 
     bool overlaps(const vec2& pos) const;
