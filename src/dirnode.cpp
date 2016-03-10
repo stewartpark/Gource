@@ -832,14 +832,21 @@ vec2 RDirNode::calcFileDest(int max_files, int file_no) {
     return dest;
 }
 
+bool sortBySize(RFile* a, RFile* b) {
+    return a->size > b->size;
+}
+
 void RDirNode::updateFilePositions() {
 
     int max_files = 1;
     int diameter  = 1;
     int file_no   = 0;
     float d = 0.0;
+    float max_size_during_cycle = 0;
 
     int files_left = visible_count;
+
+    files.sort(sortBySize);
 
     for(std::list<RFile*>::iterator it = files.begin(); it!=files.end(); it++) {
         RFile* f = *it;
@@ -858,18 +865,27 @@ void RDirNode::updateFilePositions() {
         files_left--;
         file_no++;
 
-        if(file_no>=max_files) {
+        if(max_size_during_cycle < f->size) {
+            max_size_during_cycle = f->size;
+        }
+
+        if(file_no >= max_files) {
             diameter++;
-            d += f->size;
+            d += max_size_during_cycle;
             max_files = (int) std::max(1.0, diameter*PI);
 
             if(files_left<max_files) {
                 max_files = files_left;
             }
 
-            file_no=0;
+            file_no = 0;
+            max_size_during_cycle = gGourceFileDiameter;
         }
     }
+
+    file_area  = d + max_size_during_cycle; 
+
+
 }
 
 void RDirNode::calcEdges() {

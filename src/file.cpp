@@ -16,27 +16,45 @@
 */
 
 #include "file.h"
-#include <math.h>
 
 float gGourceFileDiameter  = 8.0;
-float gGourceFileMaxDiameter = 100.0;
-float gGourceDiameterPerByte = 20480.0;
+float gGourceFileMaxDiameter = 30.0;
 
 std::vector<RFile*> gGourceRemovedFiles;
+std::vector<std::string> gGourceAllowedResizableFileExtensions = {
+    "py", "rb", "sh", "pl", "js", "css", "coffee", 
+    "c", "cpp", "h", "hpp", "html", "haml", "sass", "less"
+};
+size_t max_fsize;
+size_t min_fsize;
 
 FXFont file_selected_font;
 FXFont file_font;
 
 RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, int tagid, size_t filesize) : Pawn(name,pos,tagid) {
 
+    setFilename(name);
     hidden = true;
-    
-    if(filesize) {
-        size = (float)filesize / gGourceDiameterPerByte;
-        if(size < gGourceFileDiameter) {
+
+    if(std::find(gGourceAllowedResizableFileExtensions.begin(), gGourceAllowedResizableFileExtensions.end(), ext) != gGourceAllowedResizableFileExtensions.end()) {
+
+        if(min_fsize > filesize) {
+            min_fsize = filesize;
+        }
+
+        if(max_fsize < filesize) {
+            max_fsize = filesize;
+        }
+
+        if(filesize) {
+            float normalized_size = gGourceFileMaxDiameter - gGourceFileDiameter;
+            size_t normalized_max = max_fsize - min_fsize;
+            size_t normalized_filesize = filesize - min_fsize;
+            float size_ratio = (float)normalized_filesize / (float)normalized_max;
+
+            size = gGourceFileDiameter + (size_ratio * normalized_size);
+        } else {
             size = gGourceFileDiameter;
-        } else if(size > gGourceFileMaxDiameter) {
-            size = gGourceFileMaxDiameter;
         }
     } else {
         size = gGourceFileDiameter;
@@ -62,7 +80,6 @@ RFile::RFile(const std::string & name, const vec3 & colour, const vec2 & pos, in
 
     distance = 0;
 
-    setFilename(name);
 
     if(!file_selected_font.initialized()) {
         file_selected_font = fontmanager.grab("FreeSans.ttf", 18);
